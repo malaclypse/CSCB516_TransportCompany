@@ -6,6 +6,7 @@ import java.util.Collection;
 @Entity
 public class Client {
     private long id;
+    private Company company;
     private Collection<Freight> freights;
 
     @Id
@@ -16,6 +17,15 @@ public class Client {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    @ManyToOne(targetEntity = Company.class)
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     @OneToMany(targetEntity = Freight.class)

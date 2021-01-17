@@ -19,6 +19,8 @@ public class Vehicle {
         this.id = id;
     }
 
+    @Column(name = "vehicle_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     public VehicleTypeEnum getVehicleType() {
         return vehicleType;
     }

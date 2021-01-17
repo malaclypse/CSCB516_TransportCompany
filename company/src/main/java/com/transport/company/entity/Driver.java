@@ -11,17 +11,8 @@ public class Driver {
     private String firstName;
     private String lastName;
     private String emailId;
-    private Collection<DriverQualificationEnum> driverQualifications;
+    private List<DriverQualificationEnum> driverQualifications;
     private Company company;
-
-//    public Driver() {}
-//
-//    public Driver(String firstName, String lastName, String emailId, List<DriverQualificationEnum> qualifications) {
-//        this.firstName = firstName;
-//        this.lastName = lastName;
-//        this.emailId = emailId;
-//        this.driverQualifications = qualifications;
-//    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,7 +51,7 @@ public class Driver {
     @Enumerated(EnumType.STRING)
     @ElementCollection(targetClass= DriverQualificationEnum.class)
     @CollectionTable(name="driver_qualifications")
-    public Collection<DriverQualificationEnum> getDriverQualifications() {
+    public List<DriverQualificationEnum> getDriverQualifications() {
         return driverQualifications;
     }
     

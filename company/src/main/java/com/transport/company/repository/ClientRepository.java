@@ -1,10 +1,9 @@
 package com.transport.company.repository;
 
-import com.transport.company.entity.Company;
+import com.transport.company.entity.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CompanyRepository extends JpaRepository<Company, Long>{
-
+public interface ClientRepository extends JpaRepository<Client, Long> {
 }
