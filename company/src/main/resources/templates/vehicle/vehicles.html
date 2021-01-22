@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/* Title of this template will be passed to the head fragment along with custom links and scripts */-->
+
+<head>
+   <title>Vehicles</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   <link href="../../static/css/bootstrap.min.css" rel="stylesheet" media="screen" th:href="@{/css/bootstrap.min.css}" />
+   <link href="../../static/css/core.css" rel="stylesheet" media="screen" th:href="@{/css/core.css}" />
+
+   <script src="../../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+   <script src="../../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+</head>
+
+<body>
+   <header th:replace="fragments/header :: header">header</header>
+   <main role="main" class="pt-5">
+
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+
+      <div class="container">
+         <h2 class="display-3">Vehicles</h2>
+      </div>
+
+      <div class="container">
+         <!--/* Insert content fragment with content of the element with id = 'vehicle-list' */-->
+         <div>
+            <div id="vehicle-list">
+               <table class="table table-bordered table-striped col-md-3">
+                  <thead>
+                     <tr>
+                        <th> <a th:href="@{'/vehicles/page/' + ${currentPage} + '?sort-field=id&sort-dir=' + ${reverseSortDir}}">ID</a></th>
+                        <th> <a th:href="@{'/vehicles/page/' + ${currentPage} + '?sort-field=brand&sort-dir=' + ${reverseSortDir}}">Brand</a></th>
+                        <th> <a th:href="@{'/vehicles/page/' + ${currentPage} + '?sort-field=vehicleType&sort-dir=' + ${reverseSortDir}}">Vehicle Type</a></th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr th:if="${vehicleList.empty}">
+                        <td colspan="4">No vehicles</td>
+                     </tr>
+                     <tr th:each="vehicle : ${vehicleList}">
+                        <td>
+                           <a href="#" th:href="@{/vehicle/{id}(id=${vehicle.id})}" th:text="${vehicle.id}"></a>
+                        </td>
+                        <td th:text="${vehicle.brand}"></td>
+                        <td th:text="${vehicle.vehicleType}"></td>
+                        <td>
+                           <div class="btn-group">
+                           <a class="btn btn-outline-success mr-1" th:href="@{/vehicles/editVehicle/{id}(id=${vehicle.id})}" role="button">Edit</a>
+                           <a class="btn btn-outline-danger" th:href="@{/vehicles/delete/{id}(id=${vehicle.id})}" role="button">Remove</a>
+                        </div>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+               <hr/>
+               <div class="btn-group">
+                  <a class="btn btn-outline-primary" href="/vehicles/addNewVehicle" role="button">
+                     Add New Vehicle
+                  </a>
+                  <a class="btn btn-outline-secondary" href="/vehicles/download/vehicles.csv" role="button">
+                     Download CSV
+                  </a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </main>
+
+   <footer th:replace="fragments/footer :: footer">Footer</footer>
+
+</body>
+
+</html>

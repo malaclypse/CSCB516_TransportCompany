@@ -1,110 +1,105 @@
 package com.transport.company.controller;
-import com.transport.company.entity.Company;
-import com.transport.company.entity.Driver;
+
+import com.transport.company.dto.VehicleCreationDto;
 import com.transport.company.entity.Vehicle;
-import com.transport.company.exception.*;
-import com.transport.company.repository.ClientRepository;
-import com.transport.company.repository.CompanyRepository;
-import com.transport.company.repository.DriverRepository;
-import com.transport.company.repository.VehicleRepository;
+import com.transport.company.exception.ResourceNotFoundException;
+import com.transport.company.service.VehicleService;
+import com.transport.company.util.CsvUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.beans.IntrospectionException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
-@RestController
-@RequestMapping("/api/v1")
+@Controller
+@RequestMapping("/vehicles")
 public class VehicleController {
     @Autowired
-    private VehicleRepository vehicleRepository;
-    @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
-    private DriverRepository driverRepository;
-    @Autowired
-    private CompanyRepository companyRepository;
+    private VehicleService vehicleService;
 
-    @GetMapping("/company/{companyId}/vehicle")
-    public List<Vehicle> getAllDrivers(@PathVariable(value = "companyId") Long companyId)
-            throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
-
-        return vehicleRepository.findAll();
+    @GetMapping("")
+    public String showVehicleList(Model model) throws ResourceNotFoundException {
+        // 2 as the company ID is hardcoded because I have not implemented login functionality
+        model.addAttribute("vehicleList", vehicleService.getVehicles());
+        return "redirect:/vehicles/page/1?sort-field=id&sort-dir=asc";
     }
 
-    @GetMapping("/company/{companyId}/vehicle/{vehicleId}")
-    public ResponseEntity<Vehicle> getDriverById(@PathVariable(value = "companyId") Long companyId,
-                                                @PathVariable(value = "vehicleId") Long vehicleId)
-            throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @GetMapping(value = "/page/{page-number}")
+    public String showVehicleList( @PathVariable(name = "page-number") final int pageNo,
+                                  @RequestParam(name = "sort-field") final String sortField,
+                                  @RequestParam(name = "sort-dir") final String sortDir,
+                                  Model model) throws ResourceNotFoundException {
+        var page = vehicleService.findPaginated(1, 100, sortField, sortDir);
 
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found for this id :: " + vehicleId));
-        return ResponseEntity.ok().body(vehicle);
+        model.addAttribute("vehicleList", page.getContent());
+        model.addAttribute("currentPage", pageNo);
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("totalItems", page.getTotalElements());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        return "vehicle/vehicles";
     }
 
-    @PostMapping("/company/{companyId}/vehicle")
-    public Vehicle createDriver(@PathVariable(value = "companyId") Long companyId,
-                               @Validated @RequestBody Vehicle vehicle) throws ResourceNotFoundException {
+    @GetMapping("/addNewVehicle")
+    public String showCreateForm(Model model) {
+        VehicleCreationDto vehicleCreationForm = new VehicleCreationDto();
 
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+        vehicleCreationForm.addVehicle(new Vehicle());
+        model.addAttribute("form", vehicleCreationForm);
 
-        Driver driver = driverRepository.findById(vehicle.getDriver().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Driver not found for this id :: " + vehicle.getDriver().getId()));
-
-        vehicle.setCompany(company);
-
-        return vehicleRepository.save(vehicle);
+        return "vehicle/addNewVehicle";
     }
 
-    @PutMapping("/company/{companyId}/vehicle/{vehicleId}")
-    public ResponseEntity<Vehicle> updateVehicle(@PathVariable(value = "companyId") Long companyId,
-                                                @PathVariable(value = "vehicleId") Long vehicleId,
-                                                @Validated @RequestBody Vehicle vehicleDetails) throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @GetMapping("/editVehicle/{id}")
+    public String showUpdateForm(@PathVariable("id") long id, Model model) throws ResourceNotFoundException {
+        Vehicle vehicle = vehicleService.getVehicle( id);
 
-        Driver driver = driverRepository.findById(vehicleDetails.getDriver().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Driver not found for this id :: " + vehicleDetails.getDriver().getId()));
-
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found for this id :: " + vehicleId));
-
-        vehicle.setVehicleType(vehicleDetails.getVehicleType());
-        vehicle.setCompany(company);
-        vehicle.setDriver(driver);
-
-        final Vehicle updatedVehicle = vehicleRepository.save(vehicle);
-        return ResponseEntity.ok(updatedVehicle);
+        model.addAttribute("vehicle", vehicle);
+        return "vehicle/editVehicle";
     }
 
-    @DeleteMapping("/company/{companyId}/vehicle/{vehicleId}")
-    public Map<String, Boolean> deleteVehicle(@PathVariable(value = "companyId") Long companyId,
-                                             @PathVariable(value = "driverId") Long vehicleId)
-            throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @PostMapping(value = "/save")
+    public String saveBooks(@ModelAttribute VehicleCreationDto form, Model model) throws ResourceNotFoundException {
+        for (var vehicle : form.getVehicles()){
+            vehicleService.createVehicle( vehicle);
+        }
 
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found for this id :: " + vehicleId));
+        model.addAttribute("vehicles", vehicleService.getVehicles());
 
-        vehicleRepository.delete(vehicle);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return response;
+        return "redirect:/vehicles";
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateUser(@PathVariable("id") long id, @Valid Vehicle vehicle,
+                             BindingResult result, Model model) throws ResourceNotFoundException {
+        if (result.hasErrors()) {
+            vehicle.setId(id);
+            return "vehicle/editVehicle";
+        }
+
+        vehicleService.updateVehicle(vehicle.getId(), vehicle);
+        return "redirect:/vehicles";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable("id") long id, Model model) throws ResourceNotFoundException {
+        vehicleService.deleteVehicle( id);
+
+        return "redirect:/vehicles";
+    }
+
+    @GetMapping("/download/vehicles.csv")
+    public void downloadCsv(HttpServletResponse response) throws IOException, IOException, ResourceNotFoundException, IllegalAccessException, IntrospectionException, InvocationTargetException, IntrospectionException, InvocationTargetException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; file=vehicles.csv");
+        CsvUtil.downloadVehiclesCsv(response.getWriter(), vehicleService.getVehicles()); ;
     }
 }

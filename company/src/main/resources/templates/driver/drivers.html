@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/* Title of this template will be passed to the head fragment along with custom links and scripts */-->
+
+<head>
+   <title>Drivers</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   <link href="../../static/css/bootstrap.min.css" rel="stylesheet" media="screen"
+      th:href="@{/css/bootstrap.min.css}" />
+   <link href="../../static/css/core.css" rel="stylesheet" media="screen" th:href="@{/css/core.css}" />
+
+   <script src="../../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+   <script src="../../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+   <script language="javascript" type="text/javascript">
+      $(document).ready( function () {
+          $('#dataTable').DataTable();
+      } );
+      </script>
+</head>
+
+<body>
+   <header th:replace="fragments/header :: header">header</header>
+   <main role="main" class="pt-5">
+
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+
+      <div class="container">
+         <h2 class="display-3">Drivers</h2>
+      </div>
+
+      <div class="container">
+         <!--/* Insert content fragment with content of the element with id = 'driver-list' */-->
+         <div>
+            <div id="driver-list">
+               <table class="table table-bordered col-md-3 table-striped" id="dataTable" data-page-length='50' data-order='[[1, "desc"]]'>
+                  <thead>
+                     <tr>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=id&sort-dir=' + ${reverseSortDir}}">ID</a></th>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=emailId&sort-dir=' + ${reverseSortDir}}">Email</a></th>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=firstName&sort-dir=' + ${reverseSortDir}}">First Name</a></th>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=lastName&sort-dir=' + ${reverseSortDir}}">Last Name</a></th>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=yearlySalary&sort-dir=' + ${reverseSortDir}}">Salary</a></th>
+                        <th> <a th:href="@{'/drivers/page/' + ${currentPage} + '?sort-field=driverQualifications&sort-dir=' + ${reverseSortDir}}">Qualifications</a></th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr th:if="${driverList.empty}">
+                        <td colspan="4">No drivers</td>
+                     </tr>
+                     <tr th:each="driver : ${driverList}">
+                        <td th:text="${driver.id}" />
+                        <td th:text="${driver.emailId}"></td>
+                        <td th:text="${driver.firstName}"></td>
+                        <td th:text="${driver.lastName}"></td>
+                        <td th:text="${driver.yearlySalary}"></td>
+                        <td th:text="${driver.driverQualifications}"></td>
+                        <td>
+                           <div class="btn-group">
+                              <a class="btn btn-outline-secondary mr-1" href="#"
+                                 th:href="@{/drivers/{id}(id=${driver.id})}" role="button">View
+                                 Details</a>
+                              <a class="btn btn-outline-info mr-1"
+                                 th:href="@{/freights?driverId={id}(id=${driver.id})}" role="button">View Freights</a>
+                              <a class="btn btn-outline-success mr-1"
+                                 th:href="@{/drivers/editDriver/{id}(id=${driver.id})}" role="button">Edit</a>
+                              <a class="btn btn-outline-danger" th:href="@{/drivers/delete/{id}(id=${driver.id})}"
+                                 role="button">Remove</a>
+                           </div>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+               <hr />
+               <div class="btn-group">
+
+                  <a class="btn btn-outline-primary" href="/drivers/addNewDriver" role="button">
+                     Add New Driver
+                  </a>
+
+                  <a class="btn btn-outline-secondary" href="/drivers/download/drivers.csv" role="button">
+                     Download CSV
+                  </a>
+
+            </div>
+            </div>
+         </div>
+      </div>
+   </main>
+
+   <footer th:replace="fragments/footer :: footer">Footer</footer>
+
+</body>
+
+</html>

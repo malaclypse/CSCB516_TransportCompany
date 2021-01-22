@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/* Title of this template will be passed to the head fragment along with custom links and scripts */-->
+
+<head>
+   <title>Drivers</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   <link href="../../../static/css/bootstrap.min.css" rel="stylesheet" media="screen"
+      th:href="@{/css/bootstrap.min.css}" />
+   <link href="../../../static/css/core.css" rel="stylesheet" media="screen" th:href="@{/css/core.css}" />
+
+   <script src="../../../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+   <script src="../../../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+</head>
+
+<body>
+   <header th:replace="fragments/header :: header">header</header>
+   <main role="main" class="pt-5">
+      <div class="container pt-3">
+         <h3>Edit Driver Details</h3>
+      </div>
+      <div class="container pt-1">
+         <form action="#" th:action="@{/drivers/update/{id}(id=${driver.id})}" th:object="${driver}" method="post"
+            class="form-group">
+            <fieldset>
+               <div class="form-group col-md-3">
+                  <label> First Name</label>
+                  <input th:field="${driver.firstName}" class="form-control" id="firstName" type="text" />
+                  <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></span>
+
+               </div>
+               <div class="form-group col-md-3">
+                  <label> Last Name</label>
+                  <input th:field="${driver.lastName}" class="form-control" id="lastName" type="text" />
+                  <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></span>
+
+               </div>
+               <div class="form-group col-md-3">
+                  <label> Email</label>
+                  <input th:field="${driver.emailId}" class="form-control" id="email" type="email" />
+                  <span th:if="${#fields.hasErrors('emailId')}" th:errors="*{emailId}"></span>
+               </div>
+               <div class="form-group col-md-3">
+                  <label for="qualifications">Driver Qualifications(multiple select):</label>
+                  <select class="form-control" id="qualifications" size="5" multiple="multiple">
+                     <option th:value="CanTransportFlamableItems"
+                        th:selected="${#lists.contains(driverQualifications, 'CanTransportFlamableItems')}">
+                        Flamable items
+                     </option>
+                     <option th:value="CanTransportPeople"
+                        th:selected="${#lists.contains(driverQualifications, 'CanTransportPeople')}">
+                        More than 12 people
+                     </option>
+                     <option th:value="TrucksWithTrailers"
+                        th:selected="${#lists.contains(driverQualifications, 'CanTransportPeople')}">
+                        Trucks with trailers
+                     </option>
+                     <option th:value="BusessWithTrailers"
+                        th:selected="${#lists.contains(driverQualifications, 'CanTransportPeople')}">
+                        Buses with trailers
+                     </option>
+                  </select>
+               </div>
+               <div class="form-group col-md-3 btn-group">
+                  <input type="submit" id="submitButton" class="btn btn-outline-primary" th:value="Save">
+                  <input type="reset" id="resetButton" class="btn btn-outline-secondary" name="reset"
+                     th:value="Reset" />
+                  <a class="btn btn-outline-secondary" href="/drivers" role="button">Back</a>
+               </div>
+            </fieldset>
+         </form>
+      </div>
+   </main>
+   <footer th:replace="fragments/footer :: footer">Footer</footer>
+</body>
+
+</html>

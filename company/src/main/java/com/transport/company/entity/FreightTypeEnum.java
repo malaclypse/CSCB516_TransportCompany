@@ -1,6 +1,6 @@
 package com.transport.company.entity;
 
-public enum FreightType {
+public enum FreightTypeEnum {
     People,
     Products
 }

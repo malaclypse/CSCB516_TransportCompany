@@ -12,7 +12,7 @@ public class Driver {
     private String lastName;
     private String emailId;
     private List<DriverQualificationEnum> driverQualifications;
-    private Company company;
+    private double yearlySalary;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,23 +59,13 @@ public class Driver {
         this.driverQualifications = qualifications;
     }
 
-    @ManyToOne(targetEntity=Company.class)
-    public Company getCompany() {
-        return company;
+    @Column(name = "yearly_salary", nullable = true)
+    public double getYearlySalary() {
+        return yearlySalary;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder qualificationsString = new StringBuilder();
-        for (DriverQualificationEnum q : driverQualifications) {
-            qualificationsString.append(q.toString());
-        }
-        return "Employee [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", emailId=" + emailId
-                + "qualifications: " + qualificationsString.toString() + "]";
+    public void setYearlySalary(double yearlySalary) {
+        this.yearlySalary = yearlySalary;
     }
 }
 

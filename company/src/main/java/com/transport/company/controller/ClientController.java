@@ -1,93 +1,108 @@
 package com.transport.company.controller;
 
+import com.transport.company.dto.ClientCreationDto;
 import com.transport.company.entity.Client;
-import com.transport.company.entity.Company;
-import com.transport.company.entity.Driver;
-import com.transport.company.exception.*;
-import com.transport.company.repository.CompanyRepository;
-import com.transport.company.repository.ClientRepository;
+import com.transport.company.exception.ResourceNotFoundException;
+import com.transport.company.service.ClientService;
+import com.transport.company.util.CsvUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.beans.IntrospectionException;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
-@RestController
-@RequestMapping("/api/v1")
+@SuppressWarnings("SameReturnValue")
+@Controller
+@RequestMapping("/clients")
 public class ClientController {
     @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
-    private CompanyRepository companyRepository;
+    private ClientService clientService;
 
-    @GetMapping("/company/{companyId}/client")
-    public List<Client> getAllClients() {
-        return clientRepository.findAll();
+    @GetMapping("")
+    public String showClientList(Model model) throws ResourceNotFoundException {
+        var clientList = clientService.getClients();
+        // 2 as the company ID is hardcoded because I have not implemented login functionality
+        model.addAttribute("clientList", clientList);
+
+        return "redirect:/clients/page/1?sort-field=id&sort-dir=asc";
     }
 
-    @GetMapping("/company/{companyId}/client/{clientId}")
-    public ResponseEntity<Client> getClientById(@PathVariable(value = "companyId") Long companyId,
-                                                @PathVariable(value = "clientId") Long clientId)
-            throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @GetMapping(value = "/page/{page-number}")
+    public String showClientList( @PathVariable(name = "page-number") final int pageNo,
+                                  @RequestParam(name = "sort-field") final String sortField,
+                                  @RequestParam(name = "sort-dir") final String sortDir,
+                                  Model model) throws ResourceNotFoundException {
+        var page = clientService.findPaginated(1, 100, sortField, sortDir);
 
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found for this id :: " + clientId));
-        return ResponseEntity.ok().body(client);
+        model.addAttribute("clientList", page.getContent());
+        model.addAttribute("currentPage", pageNo);
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("totalItems", page.getTotalElements());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        return "client/clients";
     }
 
-    @PostMapping("/company/{companyId}/client")
-    public Client createDriver(@PathVariable(value = "companyId") Long companyId,
-                               @Validated @RequestBody Client client) throws ResourceNotFoundException {
+    @GetMapping("/addNewClient")
+    public String showCreateForm(Model model) {
+        ClientCreationDto clientCreationForm = new ClientCreationDto();
 
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
-        client.setCompany(company);
+        clientCreationForm.addClient(new Client());
+        model.addAttribute("form", clientCreationForm);
 
-        return clientRepository.save(client);
+        return "client/addNewClient";
     }
 
-    @PutMapping("/company/{companyId}/client/{clientId}")
-    public ResponseEntity<Client> updateCompany(@PathVariable(value = "companyId") Long companyId,
-                                                @PathVariable(value = "clientId") Long clientId,
-                                                @Validated @RequestBody Client clientDetails) throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @GetMapping("/editClient/{id}")
+    public String showUpdateForm(@PathVariable("id") long id, Model model) throws ResourceNotFoundException {
+        Client client = clientService.getClient( id);
 
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found for this id :: " + clientId));
-
-        client.setCompany(company);
-        client.setFreights(clientDetails.getFreights());
-
-        final Client updatedClient = clientRepository.save(client);
-        return ResponseEntity.ok(updatedClient);
+        model.addAttribute("client", client);
+        return "client/editClient";
     }
 
-    @DeleteMapping("/company/{companyId}/client/{clientId}")
-    public Map<String, Boolean> deleteDriver(@PathVariable(value = "companyId") Long companyId,
-                                             @PathVariable(value = "clientId") Long clientId)
-            throws ResourceNotFoundException {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this id :: " + companyId));
+    @PostMapping(value = "/save")
+    public String saveClient(@ModelAttribute ClientCreationDto form, Model model) throws ResourceNotFoundException {
+        for (var client : form.getClients()){
+            clientService.createClient(client);
+        }
 
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Client not found for this id :: " + clientId));
+        model.addAttribute("clients", clientService.getClients());
 
-        clientRepository.delete(client);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return response;
+        return "redirect:/clients";
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateClient(@PathVariable("id") long id, @Valid Client client,
+                             BindingResult result, Model model) throws ResourceNotFoundException {
+        if (result.hasErrors()) {
+            client.setId(id);
+            return "client/editClient";
+        }
+
+        clientService.updateClient( client.getId(), client);
+        return "redirect:/clients";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable("id") long id, Model model) throws ResourceNotFoundException {
+        clientService.deleteClient(id);
+
+        return "redirect:/clients";
+    }
+
+    @GetMapping("/download/clients.csv")
+    public void downloadCsv(HttpServletResponse response) throws IOException, IOException, ResourceNotFoundException, IllegalAccessException, IntrospectionException, InvocationTargetException, IOException, IntrospectionException, InvocationTargetException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; file=clients.csv");
+        CsvUtil.downloadClientsCsv(response.getWriter(), clientService.getClients()); ;
     }
 }

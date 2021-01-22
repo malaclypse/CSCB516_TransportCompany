@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Error Page</title>
+<link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
+</head>
+<body>
+   <header th:replace="fragments/header :: header">header</header>
+
+<div class="container pt-5">
+<div class="jumbotron alert-danger pt-5">
+    <h1>Oops... something went wrong.</h1>
+    <h2 th:text="${status + ' ' + error}"></h2>
+    <h3 th:text="${exception}"></h3>
+    <p th:text="${trace}"></p>
+</div>
+</div>
+<footer th:replace="fragments/footer :: footer">Footer</footer>
+
+</body>
+</html>

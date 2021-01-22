@@ -6,8 +6,7 @@ import javax.persistence.*;
 public class Vehicle {
     private long id;
     private VehicleTypeEnum vehicleType;
-    private Driver driver;
-    private Company company;
+    private String brand;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,21 +28,11 @@ public class Vehicle {
         this.vehicleType = vehicleType;
     }
 
-    @OneToOne(targetEntity=Driver.class)
-    public Driver getDriver() {
-        return driver;
+    public String getBrand() {
+        return brand;
     }
 
-    public void setDriver(Driver driver) {
-        this.driver = driver;
-    }
-
-    @ManyToOne(targetEntity=Company.class)
-    public Company getCompany() {
-        return company;
-    }
-
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 }

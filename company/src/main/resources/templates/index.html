@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+   <meta name="description" content="">
+   <meta name="author" content="">
+
+   <title>Transport Company</title>
+   <!-- Bootstrap core CSS -->
+   <link href="../static/css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" />
+</head>
+
+<body>
+
+   <div th:replace="fragments/header :: header" />
+
+   <main role="main" class="pt-5">
+
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+      <div class="jumbotron">
+         <div class="container">
+            <h1 class="display-3">Transport Company</h1>
+            <p>Manage the activity of a transport company.</p>
+         </div>
+      </div>
+
+      <div class="container">
+         <!-- Example row of columns -->
+         <div class="row">
+            <div class="col-md-3">
+               <h2>Clients</h2>
+               <p>View and manage the company's clients.</p>
+               <p><a class="btn btn-secondary" href="/clients" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-3">
+               <h2>Drivers</h2>
+               <p>View and managed employed drivers.</p>
+               <p><a class="btn btn-secondary" href="/drivers" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-3">
+               <h2>Vehicles</h2>
+               <p>View and manage the company's fleet of vehicles.</p>
+               <p><a class="btn btn-secondary" href="/vehicles" role="button">View details &raquo;</a></p>
+            </div>
+            <div class="col-md-3">
+               <h2>Freights</h2>
+               <p>View and manage the freights for both products and people.</p>
+               <p><a class="btn btn-secondary" href="/freights" role="button">View details &raquo;</a></p>
+            </div>
+
+         </div>
+
+         <hr>
+
+      </div> <!-- /container -->
+
+   </main>
+
+   <div th:replace="fragments/footer :: footer">&copy; 2016 The Static Templates</div>
+
+   <!-- Bootstrap core JavaScript
+================================================== -->
+   <!-- Placed at the end of the document so the pages load faster -->
+   <script src="../static/js/bootstrap.min.js"></script>
+</body>
+
+</html>
